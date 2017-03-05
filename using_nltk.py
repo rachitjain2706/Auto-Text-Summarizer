@@ -4,6 +4,11 @@ from nltk.stem.porter import PorterStemmer
 import string
 from collections import Counter
 from sklearn.feature_extraction.text import TfidfVectorizer
+import os
+
+import codecs
+import glob
+import string
 
 # text = """To Sherlock Holmes she is always the woman. I have
 # seldom heard him mention her under any other name. In his eyes she
@@ -59,6 +64,20 @@ text = "Anish is a chutiya. Rachit is Cool. Soham is scared of his mom."
 # count = Counter(stemmed_tokens)
 # print count
 
+# path = "/home/rachit/Documents/cnn/stories/"
+book_filenames = sorted(glob.glob("/home/rachit/Downloads/got/data/*.txt"))
+
+
+corpus_raw = u""
+for book_filename in book_filenames:
+    print("Reading '{0}'...".format(book_filename))
+    with codecs.open(book_filename, "r", "utf-8") as book_file:
+        corpus_raw += book_file.read()
+    print("Corpus is now {0} characters long".format(len(corpus_raw)))
+    print()
+
+
+
 token_dict = {}
 stemmer = PorterStemmer()
 
@@ -73,14 +92,17 @@ def tokenize(text):
     stems = stem_tokens(tokens, stemmer)
     return stems
 
-lowers = text.lower()
-no_punctuation = lowers.translate(None, string.punctuation)
-token_dict[0] = no_punctuation
+lowers = corpus_raw.lower()
+# no_punctuation = lowers.translate(str.maketrans('', '', string.punctuation))
+token_dict[0] = lowers
 
-print token_dict[0]
+# print token_dict[0]
 
 tfidf = TfidfVectorizer(tokenizer = tokenize, stop_words = 'english')
 tfs = tfidf.fit_transform(token_dict.values())
+feature_names = tfidf.get_feature_names()
+
+print feature_names
 
 # feature_names = tfidf.get_feature_names()
 # for col in r
