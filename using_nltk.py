@@ -10,6 +10,8 @@ import codecs
 import glob
 import string
 
+import numpy
+
 # text = """To Sherlock Holmes she is always the woman. I have
 # seldom heard him mention her under any other name. In his eyes she
 # eclipses and predominates the whole of her sex. It was not that he
@@ -96,17 +98,25 @@ lowers = corpus_raw.lower()
 # no_punctuation = lowers.translate(str.maketrans('', '', string.punctuation))
 token_dict[0] = lowers
 
-# print token_dict[0]
+print token_dict[0]
 
 tfidf = TfidfVectorizer(tokenizer = tokenize, stop_words = 'english')
 tfs = tfidf.fit_transform(token_dict.values())
+
+# print(tfs)
+
+count = Counter(token_dict)
+print count
+
 feature_names = tfidf.get_feature_names()
 
-print feature_names
+# print(np.cov(feature_names))
+
+# print feature_names
 
 # feature_names = tfidf.get_feature_names()
 # for col in r
-print tfs.todense()
+# print tfs.todense()
 
 # str = "Sherlock Holmes. Observing machine"
 # response = tfidf.transform([str])
