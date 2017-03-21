@@ -7,6 +7,21 @@ import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize
 
+
+# Class for word
+class Word:
+    def __init__(self, text):
+        self.text = text
+
+    def __str__(self):
+        return self.text
+
+    def setParams(self, tf, gDist, lDist, sentNum):
+        self.tf = tf
+        self.gDist = gDist
+        self.lDist = lDist
+        self.sentNum = sentNum
+
 # Append sentences from all the books
 def get_files(corpus_raw):
     book_filenames = sorted(glob.glob("/home/rachit/Downloads/got/data/*.txt"))
@@ -25,7 +40,7 @@ def get_tokens(tokens, sent_tokenize_list):
 
 # Make words, only characters kept
 def sentence_to_wordlist(raw):
-    clean = re.sub("[^a-zA-Z]"," ", raw)
+    clean = re.sub("[^a-zA-Z]", " ", raw)
     words = clean.split()
     return words
 
@@ -34,10 +49,27 @@ def remove_stopwords(tokens):
     cleaned_tokens = []
     stop_words = stopwords.words('english')
     for token in tokens:
+        cleaned_tokens_sentence = []
         for word in token:
             if word not in stop_words:
-                cleaned_tokens.append(word)
+                cleaned_tokens_sentence.append(word)
+        cleaned_tokens.append(cleaned_tokens_sentence)
     return cleaned_tokens
+
+def createWordList(cleaned_tokens):
+    sentNum = 1
+    gDist = 1
+    wordList = []
+    for sent in cleaned_tokens:
+        lDist = 1
+        sentNum += 1
+        for word in sent:
+            tempWord = Word(word)
+            tempWord.setParams(0, gDist, lDist, sentNum)
+            wordList.append(tempWord)
+            lDist += 1
+            gDist += 1
+    return wordList
         
 corpus_raw = u""
 
@@ -57,3 +89,6 @@ for raw_sentence in raw_sentences:
 
 # Removal of stop words
 cleaned_tokens = remove_stopwords(tokens)
+
+# Create Objects for Word class
+wordList = createWordList(cleaned_tokens)
