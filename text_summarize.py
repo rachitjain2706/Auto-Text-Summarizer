@@ -6,7 +6,7 @@ import re
 import nltk
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize
-
+from collections import Counter
 
 # Class for word
 class Word:
@@ -56,7 +56,8 @@ def remove_stopwords(tokens):
         cleaned_tokens.append(cleaned_tokens_sentence)
     return cleaned_tokens
 
-def createWordList(cleaned_tokens):
+# Making word list
+def createWordList(freq, cleaned_tokens):
     sentNum = 1
     gDist = 1
     wordList = []
@@ -65,7 +66,8 @@ def createWordList(cleaned_tokens):
         sentNum += 1
         for word in sent:
             tempWord = Word(word)
-            tempWord.setParams(0, gDist, lDist, sentNum)
+            tf = freq[tempWord.text]
+            tempWord.setParams(tf, gDist, lDist, sentNum)
             wordList.append(tempWord)
             lDist += 1
             gDist += 1
@@ -90,5 +92,16 @@ for raw_sentence in raw_sentences:
 # Removal of stop words
 cleaned_tokens = remove_stopwords(tokens)
 
+# For Counter
+cleaned_raw_data = sentence_to_wordlist(raw_data)
+
+# Store term frequency for lookup
+freq = Counter(cleaned_raw_data)
+
 # Create Objects for Word class
-wordList = createWordList(cleaned_tokens)
+wordList = createWordList(freq, cleaned_tokens)
+
+# for word in wordList:
+#     print word, word.tf, word.gDist, "\n"
+
+# print nltk.pos_tag(nltk.word_tokenize('BBC and CNN are reported pussy. I have a big,black,hairy pussy cat and a Dog called brandy who is dead.'))
