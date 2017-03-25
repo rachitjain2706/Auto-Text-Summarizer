@@ -8,6 +8,20 @@ from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize
 from collections import Counter
 
+import numpy as np
+from numpy import array
+
+# from nltk.tag.stanford import StanfordNERTagger
+
+from sklearn.feature_extraction.text import CountVectorizer
+
+# Class for Sentence
+class Sentence:
+
+    def setSentenceParams(self, sno, slen):
+        self.sno = sno
+        self.slen = slen
+
 # Class for word
 class Word:
     def __init__(self, text):
@@ -22,14 +36,27 @@ class Word:
         self.lDist = lDist
         self.sentNum = sentNum
 
+    def setPOS(self, pos):
+        self.pos = pos
+
 # Append sentences from all the books
-def get_files(corpus_raw):
-    book_filenames = sorted(glob.glob("/home/rachit/Downloads/got/data/*.txt"))
+def get_input_files(corpus_raw):
+    book_filenames = sorted(glob.glob("/home/rachit/Downloads/Data6/multilingMss2015Eval/body/text/en/*.txt"))
     for book_filename in book_filenames:
-        print("Reading '{0}'...".format(book_filename))
+        # print("Reading '{0}'...".format(book_filename))
         with codecs.open(book_filename, "r", "utf-8") as book_file:
             corpus_raw += book_file.read()
-        print("Corpus is now {0} characters long".format(len(corpus_raw)))
+        # print("Corpus is now {0} characters long".format(len(corpus_raw)))
+    return corpus_raw
+
+# Append summaries from all the books
+def get_summary_files(corpus_raw):
+    book_filenames = sorted(glob.glob("/home/rachit/Downloads/Data6/multilingMss2015Eval/summary/en/*.txt"))
+    for book_filename in book_filenames:
+        # print("Reading '{0}'...".format(book_filename))
+        with codecs.open(book_filename, "r", "utf-8") as book_file:
+            corpus_raw += book_file.read()
+        # print("Corpus is now {0} characters long".format(len(corpus_raw)))
     return corpus_raw
 
 # Make tokens of words in the sentences
@@ -57,26 +84,61 @@ def remove_stopwords(tokens):
     return cleaned_tokens
 
 # Making word list
-def createWordList(freq, cleaned_tokens):
+def createWordList(pos_data, freq, cleaned_tokens):
     sentNum = 1
     gDist = 1
     wordList = []
+    sentList = []
     for sent in cleaned_tokens:
+        tempSent = Sentence()
         lDist = 1
         sentNum += 1
         for word in sent:
             tempWord = Word(word)
             tf = freq[tempWord.text]
+            # print tempWord.text
+            # a = "u\'"
+            # index = a + tempWord.text
+            # pos = pos_data[a]
             tempWord.setParams(tf, gDist, lDist, sentNum)
+            # tempWord.setPOS(pos)
             wordList.append(tempWord)
             lDist += 1
             gDist += 1
-    return wordList
-        
+        tempSent.setSentenceParams(sentNum, lDist)
+        sentList.append(tempSent)
+    return wordList, sentList
+
+# Print word objects
+def print_word_objects(wordList):
+    for word in wordList:
+        print word, word.tf, word.gDist, word.lDist, "\n"
+
+# Print sentence objects
+def print_sentence_objects(sentList):
+    for sent in sentList:
+        parts = raw_data.split('.')
+        print parts[sent.sno], sent.sno, sent.slen, "\n"
+
+# Make numpy array
+def make_numpy_array(wordList):
+    sentMat = []
+
+    for word in wordList:
+        wordMat = []
+        wordMat.append(word.text)
+        wordMat.append(word.tf)
+        wordMat.append(word.gDist)
+        wordMat.append(word.lDist)
+        wordMat.append(word.sentNum)
+        sentMat.append(wordMat)
+
+    return array(sentMat)
+      
 corpus_raw = u""
 
 # Sentence extraction
-raw_data = get_files(corpus_raw)
+raw_data = get_input_files(corpus_raw)
 
 tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
 
@@ -95,13 +157,73 @@ cleaned_tokens = remove_stopwords(tokens)
 # For Counter
 cleaned_raw_data = sentence_to_wordlist(raw_data)
 
+# print cleaned_raw_data
+
 # Store term frequency for lookup
 freq = Counter(cleaned_raw_data)
 
+# Do POS Tagging
+pos_data = nltk.pos_tag(cleaned_raw_data)
+
 # Create Objects for Word class
-wordList = createWordList(freq, cleaned_tokens)
+wordList, sentList = createWordList(pos_data, freq, cleaned_tokens)
 
-# for word in wordList:
-#     print word, word.tf, word.gDist, "\n"
+'''# Show word objects
+print_word_objects(wordList) '''
 
-# print nltk.pos_tag(nltk.word_tokenize('BBC and CNN are reported pussy. I have a big,black,hairy pussy cat and a Dog called brandy who is dead.'))
+'''# Show sentence objects
+print_sentence_objects(sentList) '''
+
+'''
+# For printing the specific sentences which are selected according to the weight
+parts = raw_data.split('.')
+
+print parts[10] '''
+
+
+# Co occurence matrix of words
+count_model = CountVectorizer(ngram_range = (1, 1))
+X = count_model.fit_transform(cleaned_raw_data)
+Xc = (X.T * X)
+# print count_model.vocabulary_
+# print Xc.shape
+
+# Numpy array
+numpy_array = make_numpy_array(wordList)
+
+(p1, p2) = numpy_array.shape
+
+sent_dict = {}
+
+for i in range(p1):
+    if numpy_array[i][0] in sent_dict:
+        pass
+    else:
+        sent_dict[numpy_array[i][0]] = numpy_array[i][2]
+
+corpus_summary = u""
+
+summary_data = get_summary_files(corpus_summary)
+
+# Tokenize into sentences
+raw_summaries = tokenizer.tokenize(summary_data)
+
+# Make a list of sentences
+tokens_summary = []
+for raw_summary in raw_summaries:
+    if len(raw_summary) > 0:
+        tokens_summary.append(sentence_to_wordlist(raw_summary))
+
+# Removal of stop words
+cleaned_tokens_summary = remove_stopwords(tokens_summary)
+
+# set output array for supervised learning
+outputMat = []
+outputMat[:p1] = [0] * p1
+for sent in cleaned_tokens_summary:
+    for word in sent:
+        if (word in sent_dict):
+            index = sent_dict[word]
+            outputMat[int(index)] = 1
+
+# print outputMat
