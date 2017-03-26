@@ -120,13 +120,25 @@ def print_sentence_objects(sentList):
         parts = raw_data.split('.')
         print parts[sent.sno], sent.sno, sent.slen, "\n"
 
+# For supervised traning set
+def output_array(wordList):
+    sentMat = []
+
+    for word in wordList:
+        wordMat = []
+        wordMat.append(word.text)
+        wordMat.append(word.gDist)
+        sentMat.append(wordMat)
+
+    return array(sentMat)
+
 # Make numpy array
 def make_numpy_array(wordList):
     sentMat = []
 
     for word in wordList:
         wordMat = []
-        wordMat.append(word.text)
+        # wordMat.append(word.text)
         wordMat.append(word.tf)
         wordMat.append(word.gDist)
         wordMat.append(word.lDist)
@@ -165,6 +177,15 @@ freq = Counter(cleaned_raw_data)
 # Do POS Tagging
 pos_data = nltk.pos_tag(cleaned_raw_data)
 
+# print pos_data[0][1]
+
+'''pos_array = []
+
+for word in pos_data:
+    pos_array[word[0]] = word[1]
+
+print pos_array'''
+
 # Create Objects for Word class
 wordList, sentList = createWordList(pos_data, freq, cleaned_tokens)
 
@@ -191,15 +212,22 @@ Xc = (X.T * X)
 # Numpy array
 numpy_array = make_numpy_array(wordList)
 
+# Output array for supervision
+output_array = output_array(wordList)
+
+# print type(numpy_array[0][1])
+
 (p1, p2) = numpy_array.shape
 
 sent_dict = {}
 
 for i in range(p1):
-    if numpy_array[i][0] in sent_dict:
+    if output_array[i][0] in sent_dict:
         pass
     else:
-        sent_dict[numpy_array[i][0]] = numpy_array[i][2]
+        sent_dict[output_array[i][0]] = output_array[i][1]
+
+print sent_dict
 
 corpus_summary = u""
 
@@ -227,3 +255,6 @@ for sent in cleaned_tokens_summary:
             outputMat[int(index)] = 1
 
 # print outputMat
+
+
+##################################
