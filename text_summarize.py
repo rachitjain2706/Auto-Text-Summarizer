@@ -41,7 +41,7 @@ class Word:
 
 # Append sentences from all the books
 def get_input_files(corpus_raw):
-    book_filenames = sorted(glob.glob("/home/rachit/Downloads/Data6/multilingMss2015Eval/body/text/en/*.txt"))
+    book_filenames = sorted(glob.glob("/home/rachit/Downloads/Data7/corpus/training_full_text/*.txt"))
     for book_filename in book_filenames:
         # print("Reading '{0}'...".format(book_filename))
         with codecs.open(book_filename, "r", "utf-8") as book_file:
@@ -51,7 +51,7 @@ def get_input_files(corpus_raw):
 
 # Append summaries from all the books
 def get_summary_files(corpus_raw):
-    book_filenames = sorted(glob.glob("/home/rachit/Downloads/Data6/multilingMss2015Eval/summary/en/*.txt"))
+    book_filenames = sorted(glob.glob("/home/rachit/Downloads/Data7/corpus/training_class_2/*.txt"))
     for book_filename in book_filenames:
         # print("Reading '{0}'...".format(book_filename))
         with codecs.open(book_filename, "r", "utf-8") as book_file:
@@ -145,7 +145,7 @@ def make_numpy_array(wordList):
         wordMat.append(word.sentNum)
         sentMat.append(wordMat)
 
-    return array(sentMat)
+    return np.array(sentMat)
       
 corpus_raw = u""
 
@@ -212,6 +212,10 @@ Xc = (X.T * X)
 # Numpy array
 numpy_array = make_numpy_array(wordList)
 
+# print numpy_array
+
+# print numpy_array,  numpy_array.shape
+
 # Output array for supervision
 output_array = output_array(wordList)
 
@@ -227,7 +231,7 @@ for i in range(p1):
     else:
         sent_dict[output_array[i][0]] = output_array[i][1]
 
-print sent_dict
+# print sent_dict
 
 corpus_summary = u""
 
@@ -250,11 +254,211 @@ outputMat = []
 outputMat[:p1] = [0] * p1
 for sent in cleaned_tokens_summary:
     for word in sent:
-        if (word in sent_dict):
+        # word_mat = []
+        if (word in sent_dict):            
             index = sent_dict[word]
             outputMat[int(index)] = 1
+            # word_mat.append[outputMat[int(index)]]
 
-# print outputMat
+
+
+# for i in range(len(outputMat)):
+#     word_mat = []
+#     word_mat.append(outputMat[i])
+
+output_mat = np.array(outputMat)
+
+op_array = []
+for i in output_mat:
+    temp = []
+    temp.append(i)
+    op_array.append(temp)
+
+op_array = np.array(op_array)
+
+# print op_array
+
+# print op_array
+# print array(outputMat).shape
 
 
 ##################################
+
+
+
+class BackPropagationNetwork:
+    """A back-propagation network"""
+
+    def __init__(self, layerSize, layerFunctions=None):# layerSize is a tuple of layers
+        """Initialize the network"""
+        
+        self.layerCount = 0
+        self.shape = None
+        self.weights = []   # weights assigned to a layer are the weights that precede it
+                            # so the weights that feed into the layer are the ones which are assigned to it
+        
+        # Layer info
+        self.layerCount = len(layerSize) - 1 # input layer is only a placeholder kinda thing for inputs. So numLayer is 1 less than that
+        self.shape = layerSize
+        
+        # Input Outpur data from last Run
+        self._layerInput = []
+        self._layerOutput = []
+
+        # layerSize[:-1] All but the last one
+        # layerSize[1:] from the first one
+
+        # Create the weight arrays
+        for (l1,l2) in zip(layerSize[:-1], layerSize[1:]):#(l1,l2) become for say layersize = (2,3,4) : [(2,3),(3,4)]
+            self.weights.append(np.random.normal(scale=0.01, size = (l2, l1+1)))# +1 for the bias node
+                                                                                # Inputs are 3x4 so weights will be 4xp
+
+def nonlin(x, deriv=False):
+    if(deriv==True):
+        return 0.03*(x*(1-x))
+    return 1/(1+np.exp(-x))
+
+if __name__ == "__main__":
+    n_hiddenlayers = 1
+    n_hiddenlayer_neurons = 3
+    n_datapoints  = p1
+    n_features = p2
+
+    # print p1, p2, "\n"
+
+
+    # InputData = makeRandomArray(n_datapoints, n_features) # Get Data here!
+    # OutputData = makeRandomArray(n_datapoints,1) # Get Data here!
+
+    InputData = numpy_array
+    # print InputData.shape
+    OutputData = op_array
+    # print OutputData.shape[0]
+
+
+    bpn = BackPropagationNetwork((n_features,n_hiddenlayer_neurons,1))
+    weights = bpn.weights
+    syn0,syn1 = weights[0],weights[1]
+
+    # print "INPUT DATA:    \n",InputData.shape,"\n",InputData
+    
+    for j in xrange(60000):
+
+        # print "Syn 0 :    \n",syn0.shape,"\n",syn0
+
+        # print "Syn 1 :    \n",syn1.shape,"\n",syn1 
+
+        l0 = InputData
+        l0 = np.vstack([l0.T, np.ones(n_datapoints)]).T
+
+        l1 = nonlin(np.dot(l0, syn0.T))
+        l1 = np.vstack((l1.T, np.ones(n_datapoints))).T
+        l2 = nonlin(np.dot(l1, syn1.T))
+
+        l2_error = OutputData - l2
+
+        if(j % 10000) == 0:   # Only print the error every 10 steps, to save time and limit the amount of output. 
+            print("Error: " + str(np.mean(np.abs(l2_error))))
+
+        l2_delta = l2_error*nonlin(l2, deriv=True)
+        # print l2_delta, "\n\n\n"
+        l1_error = l2_delta.dot(syn1)
+        # print l1_error, "\n\n\n"
+        l1_delta = l1_error * nonlin(l1,deriv=True)
+        syn1_delta = l1.T.dot(l2_delta).T
+        syn1 += syn1_delta
+
+        l1_delta = l1_delta.T
+        l1_delta = np.delete(l1_delta, -1, 0).T
+        syn0_delta = l0.T.dot(l1_delta).T
+        syn0 += syn0_delta
+
+        # print syn0_delta,syn0_delta.shape
+
+
+        # syn1 = syn1 + 
+        # syn1 = syn1.T +  l1.T.dot(l2_delta)
+        # syn0 = l0.T.dot(l1_delta)
+
+
+'''class BackPropagationNetwork:
+    """A back-propagation network"""
+
+    def __init__(self, layerSize, layerFunctions=None):# layerSize is a tuple of layers
+        """Initialize the network"""
+        
+        self.layerCount = 0
+        self.shape = None
+        self.weights = []   # weights assigned to a layer are the weights that precede it
+                            # so the weights that feed into the layer are the ones which are assigned to it
+        
+        # Layer info
+        self.layerCount = len(layerSize) - 1 # input layer is only a placeholder kinda thing for inputs. So numLayer is 1 less than that
+        self.shape = layerSize
+        
+        # Input Outpur data from last Run
+        self._layerInput = []
+        self._layerOutput = []
+
+        # layerSize[:-1] All but the last one
+        # layerSize[1:] from the first one
+
+        # Create the weight arrays
+        for (l1,l2) in zip(layerSize[:-1], layerSize[1:]):#(l1,l2) become for say layersize = (2,3,4) : [(2,3),(3,4)]
+            self.weights.append(np.random.normal(scale=0.1, size = (l2, l1)))# +1 for the bias node
+                                                                                # Inputs are 3x4 so weights will be 4xp
+
+def nonlin(x, deriv=False):
+    if(deriv==True):
+        return (x*(1-x))
+    return 1/(1+np.exp(-x))
+
+def makeRandomArray(n, m):
+    arr = 2*np.random.random((n,m)) - 1
+    return arr
+
+n_hiddenlayers = 1
+n_hiddenlayer_neurons = 3
+n_datapoints  = p1
+n_features = p2
+
+InputData = numpy_array
+OutputData = op_array
+
+bpn = BackPropagationNetwork((n_features,n_hiddenlayer_neurons,1))
+
+weights = bpn.weights
+
+syn0,syn1 = weights[0].T,weights[1].T
+
+print "INPUT DATA:  \n",InputData.shape,"\n",InputData
+
+print "Syn 0 :  \n",syn0.shape,"\n",syn0
+
+print "Syn 1 :  \n",syn1.shape,"\n",syn1
+
+
+for j in xrange(600):  
+    
+    # Calculate forward through the network
+
+    l0 = InputData
+    l1 = nonlin(np.dot(l0, syn0))
+    l2 = nonlin(np.dot(l1, syn1))
+    
+    # Back propagation of errors using the chain rule. 
+    l2_error = OutputData - l2
+    if(j % 10) == 0:   # Only print the error every 10000 steps, to save time and limit the amount of output. 
+        print("Error: " + str(np.mean(np.abs(l2_error))))
+        
+    l2_delta = l2_error*nonlin(l2, deriv=True)
+    
+    l1_error = l2_delta.dot(syn1.T)
+    
+    l1_delta = l1_error * nonlin(l1,deriv=True)
+    
+    #update weights (no learning rate term)
+    syn1 += l1.T.dot(l2_delta)
+    syn0 += l0.T.dot(l1_delta)
+
+# print syn0'''

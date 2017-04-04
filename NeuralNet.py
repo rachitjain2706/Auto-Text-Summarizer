@@ -59,7 +59,7 @@ if __name__ == "__main__":
 
     # print "Syn 1 :    \n",syn1.shape,"\n",syn1 
     
-    for j in xrange(60000):
+    for j in xrange(6):
         l0 = InputData
         l0 = np.vstack([l0.T, np.ones(n_datapoints)]).T
 
@@ -73,6 +73,7 @@ if __name__ == "__main__":
             print("Error: " + str(np.mean(np.abs(l2_error))))
 
         l2_delta = l2_error*nonlin(l2, deriv=True)
+        print l2_delta.shape
         l1_error = l2_delta.dot(syn1)
         l1_delta = l1_error * nonlin(l1,deriv=True)
         syn1_delta = l1.T.dot(l2_delta).T
