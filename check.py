@@ -14,6 +14,8 @@ import numpy as np
 from numpy import array
 import statistics
 
+import timeit
+
 # Class for Sentence
 class Sentence:
     def setSentenceParams(self, n_nouns, avg_tfisf, sno):
@@ -55,7 +57,7 @@ def get_input_files(corpus_raw):
 
 # Append summaries from all the books
 def get_summary_files(corpus_raw):
-    book_filenames = sorted(glob.glob("/home/rachit/Music/traning_class/*.txt"))
+    book_filenames = sorted(glob.glob("/home/rachit/Music/training_class/*.txt"))
     for book_filename in book_filenames:
         # print("Reading '{0}'...".format(book_filename))
         with open(book_filename, "r") as book_file:
@@ -230,16 +232,25 @@ def normalize_shit(all_sentences, max_avg_tfsif, max_nNouns, max_sentLen):
         sentence.slen /= max_sentLen
     return all_sentences
 
+# Get posterior probability
+def get_lfeatures(prob_label, prob_flabel, prob_features):
+    # return prob_label * prob_flabel / prob_features
+    prob_post = []
+    for i in range(len(prob_flabel)):
+        temp = prob_flabel[i] / prob_features[i]
+        prob_post.append(temp * prob_label)
+    return prob_post
+
+start = timeit.default_timer()
 
 corpus_raw = u""
 
 # Sentence extraction
 raw_data = get_input_files(corpus_raw)
 
-tokenizer = nltk.data.load('tokenizers/punkt/english.pickle')
-
 # Tokenize into sentences
-raw_sentences = tokenizer.tokenize(raw_data)
+# raw_sentences = tokenizer.tokenize(raw_data)
+raw_sentences = nltk.sent_tokenize(raw_data)
 
 # print raw_sentences
 
@@ -308,13 +319,13 @@ all_sentences = normalize_shit(all_sentences, max_avg_tfsif, max_nNouns, max_sen
 
 # print len(all_sentences)
 
-ip_array = []
+'''ip_array = []
 for sentence in all_sentences:
-    ip_array.append([sentence.avg_tfisf, sentence.n_nouns, sentence.slen])
+    ip_array.append([sentence.avg_tfisf, sentence.n_nouns, sentence.slen])'''
 
 # print all_sentences.avg_tfisf
 # print median(all_sentences.avg_tfisf)
-'''avg_tfisf_list = []
+avg_tfisf_list = []
 n_nouns_list = []
 slen_list = []
 for sentence in all_sentences:
@@ -366,7 +377,9 @@ for sentence in all_sentences:
         _seven += 1
     ip_array.append([i, j, k])
 
-features_list = [_zero, _one, _two, _three, _four, _five, _six, _seven]'''
+features_list = [_zero, _one, _two, _three, _four, _five, _six, _seven]
+
+# print features_list
 
 # print ip_array
 
@@ -379,7 +392,8 @@ summary_data = get_summary_files(corpus_summary)
 # print summary_data
 
 # Tokenize into sentences
-raw_summaries = tokenizer.tokenize(summary_data)
+# raw_summaries = tokenizer.tokenize(summary_data)
+raw_summaries = nltk.sent_tokenize(summary_data)
 
 # print raw_sentences
 
@@ -399,27 +413,29 @@ for summary_sentence in raw_summaries:
 ones = 0
 index = -1
 p1 = len(raw_sentences)
+# print p1
 outputMat = []
 outputMat[:p1] = [0] * p1
 
 for raw_sentence in raw_sentences:
     index += 1
-    for summary_sentence in raw_summaries:        
-        if (summary_sentence == raw_sentence):
-            # print index, '->', summary_sentence, '->', raw_sentence, '\n\n\n'
-            ones += 1
-            outputMat[index] = 1
-            break
-            # print index
+    # for summary_sentence in raw_summaries:
+    if (raw_sentence in raw_summaries):
+        # print index, '->', summary_sentence, '->', raw_sentence, '\n\n\n'
+        ones += 1
+        outputMat[index] = 1
 
+# print ones
+prob_label = float(ones) / p1
 
-'''prob_label = float(ones) / p1
+# print prob_label
 
 prob_features = []
 
 for i in features_list:
     prob_features.append(float(i) / p1)
 
+# print prob_features
 
 __zero = 0
 __one = 0
@@ -454,113 +470,20 @@ for i, sentence in enumerate(all_sentences):
 
 flabel_list = [__zero, __one, __two, __three, __four, __five, __six, __seven]
 
+# print flabel_list
+
 prob_flabel = []
 
 for i in flabel_list:
-    prob_flabel.append(float(i) / index)
+    prob_flabel.append(float(i) / sum(flabel_list))
 
-# prob_features[0] = _zero / p1
-# print prob_flabel'''
+# print sum(prob_flabel)
 
-# print outputMat
+prob_post = get_lfeatures(prob_label, prob_flabel, prob_features)
 
-op_array = []
-for val in outputMat:
-    op_array.append([val])
+print prob_post
 
-j = []
-
-# print op_array
-
-# print outputMat[883]
-
-for i in range(0, p1-1):
-    y = all_sentences[i].sno
-    # print y, '\n'
-    # if (outputMat[y] == 1):
-        # print raw_sentences[y], all_sentences[i].avg_tfisf, all_sentences[i].n_nouns
-    j.append([all_sentences[i].avg_tfisf, all_sentences[i].n_nouns, all_sentences[i].slen])
-
-# print j.sort()
-'''sorted_array = []
-
-# for sent1 in all_sentences:
-#     # for sent2 in all_sentences:
-#         # if(sent1.avg_tfisf > sent2.avg_tfisf)
-#         sorted_array.append([sent1.avg_tfisf, sent1.n_nouns])
-
-for i in range(0, p1-1):
-    for j in range(0, p1-1):
-        if(all_sentences[i].avg_tfisf > all_sentences[j].avg_tfisf):
-            c = all_sentences[i]
-            all_sentences[i] = all_sentences[j]
-            all_sentences[j] = c
-            # y = all_sentences[i].sno
-            # j.append([all_sentences[i].avg_tfisf, all_sentences[i].n_nouns, all_sentences[i].slen])
-
-for i in range(0, p1-1):
-    y = all_sentences[i].sno
-    print y, '->', all_sentences[i].avg_tfisf, all_sentences[i].n_nouns, '\n' '''
-
-# print ip_array
-# print op_array
+stop = timeit.default_timer()
 
 
-# print j
-# print op_array
-
-# print outputMat[0:50]
-
-'''for sent in all_sentences:
-    if (sent.sno < 3):
-        print raw_sentences[sent.sno]'''
-
-# ------------------------------------------------------------------------------------ #
-
-import tensorflow as tf
-import tflearn
-
-# Logical OR operator
-X = ip_array
-Y = op_array
-
-# print Y
-
-# Graph definition
-with tf.Graph().as_default():
-    tflearn.init_graph(seed=1)
-    g = tflearn.input_data(shape=[None, 3])
-    g = tflearn.fully_connected(g, 20, activation='linear')
-    # g = tflearn.fully_connected(g, 20, activation='linear')
-    g = tflearn.fully_connected(g, 1, activation='sigmoid')
-    g = tflearn.regression(g, optimizer='sgd', learning_rate=0.3,
-                           loss='mean_square')
-
-    # Model training
-    m = tflearn.DNN(g)
-
-    train = True
-
-    if(train):
-        m.fit(X, Y, n_epoch=100, snapshot_epoch=False)
-        m.save('ats.model')
-    else:
-        m.load('ats.model')
-
-    # print("To be or not to be:", m.predict([[115.679916309, 17]]))
-
-    for small_array in j:
-        # print small_array[0], small_array[1]
-        print("To be or not to be:", m.predict([[small_array[0], small_array[1], small_array[2]]]))
-
-    
-    # print numpy_array[8]
-
-    # parts = raw_data.split(' ')
-
-    # print parts[8]
-
-    # print("1 or 1:", m.predict([[229, 1]]))
-    # for i in xrange(1000):
-    #     print("i : ", i , m.predict([[i, 1]]))
-    # print op_array[8]
+print 'Time  = ', stop - start
