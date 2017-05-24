@@ -59,8 +59,6 @@ def find_accuracy(raw_data, raw_summ):
     # print raw_sentences
     # print raw_summaries
 
-    _ = 0.10
-
     for raw_sentence in raw_sentences:
         if raw_sentence in raw_summaries:
             tp += 1
@@ -87,7 +85,7 @@ def find_accuracy(raw_data, raw_summ):
         print 'Precision = ', prob_prec
         print 'Recall = ', prob_recall
         print '-----------------------------------------------------------------------------------------'
-        return (f1score + _)
+        return (f1score)
     else:
         return 0
 
