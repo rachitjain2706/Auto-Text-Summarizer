@@ -1,7 +1,7 @@
 # Auto-Text-Summarizer
 
 The project uses a Naive Bayes approach to classify sentence as summary sentence or not.
-The data set being used is of Australian legal cases.
+The data set being used is of Australian legal cases taken from the UCI repository(https://archive.ics.uci.edu/ml/datasets/Legal+Case+Reports)
 
 We chose to extract certain features from a sentence in order to represent it in a vector/representable space.
 

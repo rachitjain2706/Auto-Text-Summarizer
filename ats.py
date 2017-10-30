@@ -276,54 +276,6 @@ for sent in cleaned_tokens_summary:
 
 
 
-# for i in range(len(outputMat)):
-#     word_mat = []
-#     word_mat.append(outputMat[i])
-
-output_mat = np.array(outputMat)
-
-# print outputMat
-
-# print output_mat
-
-op_array = []
-for i in output_mat:
-    temp = []
-    temp.append(i)
-    op_array.append(temp)
-
-# print np.array(op_array).T
-
-# op_array = np.array(op_array)
-
-# print output_array
-# print op_array
-
-
-########################################################################
-
-
-
-'''from sklearn.naive_bayes import GaussianNB
-
-X = numpy_array
-Y = output_mat
-
-# print X
-
-# Y = Y.T
-
-clf = GaussianNB()
-clf.fit(X, Y)
-
-# print clf.predict([[229, 1]])'''
-
-
-
-###############################################################
-
-
-
 
 import tensorflow as tf
 import tflearn
@@ -360,15 +312,3 @@ with tf.Graph().as_default():
         m.save('ats.model')
     else:
         m.load('ats.model')
-
-    
-    # print numpy_array[8]
-
-    # parts = raw_data.split(' ')
-
-    # print parts[8]
-
-    # print("1 or 1:", m.predict([[229, 1]]))
-    # for i in xrange(1000):
-    #     print("i : ", i , m.predict([[i, 1]]))
-    # print op_array[8]
