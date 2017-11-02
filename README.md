@@ -10,6 +10,6 @@ The features we chose were:
 2. Sentence length (A longer sentence may be more important)
 
 During the whole process, we learned a lot.
-We developed some non Naive Bayes codes as well: NeuralNet.py and TextRank.py
+We developed some non Naive Bayes codes as well: NeuralNet.py and TextRank.py (now in /Experimental Code)
 
 If you need help, feel free to ask/make an issue.
