@@ -13,4 +13,6 @@ We suggest a Naïve Bayes approach to Automatic Text Summarization(ATS) using
 2. sentence length (and)
 3. number of nouns in a sentence.
 
+We developed some non Naive Bayes codes as well: NeuralNet.py and TextRank.py (now in /Experimental Code)
+
 If you need help, feel free to ask/make an issue.
