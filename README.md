@@ -2,9 +2,9 @@
 
 The project uses a Naive Bayes approach to classify sentence as summary sentence or not.
 
-For a detailed report read: TLDR.pdf
+**For a detailed report read: `/TLDR.pdf`**
 
-The data set being used is of Australian legal cases taken from the UCI repository(https://archive.ics.uci.edu/ml/datasets/Legal+Case+Reports)
+**Data Set:** Australian legal cases taken from the UCI repository(https://archive.ics.uci.edu/ml/datasets/Legal+Case+Reports)
 
 We chose to extract certain features from a sentence in order to represent it in a vector/representable space.
 
